@@ -2,19 +2,19 @@
 # shellcheck disable=SC2155 # Allow 'local var=$(command)'
 
 # ==============================================================================
-# 开发环境部署脚本 (Debian/Ubuntu - v6.5 Help Color Fix)
+# 开发环境部署脚本 (Debian/Ubuntu - v6.7 Final Color Fix)
 #
 # 功能: 通过命令行参数或交互式菜单安装开发工具，并提供更换 APT 源选项。
 # 项目地址: https://github.com/butlanys/code.sh
 #
 # 命令行用法示例:
-#   sudo ./deploy_dev_env.sh --git --python 3.11.9 --node lts --docker --go manual
-#   sudo ./deploy_dev_env.sh --all --no-ppa
-#   sudo ./deploy_dev_env.sh --change-source cn --basic-packages --git
-#   sudo ./deploy_dev_env.sh --help
+#   sudo ./code.sh --git --python 3.11.9 --node lts --docker --go manual
+#   sudo ./code.sh --all --no-ppa
+#   sudo ./code.sh --change-source cn --basic-packages --git
+#   sudo ./code.sh --help
 #
 # 交互式用法:
-#   sudo ./deploy_dev_env.sh (不带参数，启用彩色输出)
+#   sudo ./code.sh (不带参数，启用彩色输出)
 #
 # 注意: 需要 root 权限。源码编译 Python 需要较长时间和依赖。
 #       从官网安装 Go 依赖 curl/wget, grep, sed, awk, tar，且解析逻辑可能因官网改版失效。
@@ -98,11 +98,9 @@ _read_prompt() {
         prompt_display+=" [默认: ${default_value}]"
     fi
 
-    # 使用 read -p 输出带颜色的提示 (颜色变量可能为空)
     read -p "$(echo -e "${COLOR_CYAN}${prompt_display}:${COLOR_RESET} ")" "$variable_name"
 
     if [[ -z "${!variable_name}" && -n "$default_value" ]]; then
-        # 使用 eval 动态设置变量值
         eval "$variable_name=\"$default_value\""
     fi
 }
@@ -110,7 +108,6 @@ _read_prompt() {
 
 # --- 显示帮助信息 ---
 _show_help() {
-    # 帮助信息总是带颜色，因为它只在直接请求帮助时显示
     local R='\e[0m' B='\e[1m' D='\e[2m'
     local RD='\e[91m' GR='\e[32m' YL='\e[33m' BL='\e[34m' MG='\e[35m' CY='\e[36m'
 
@@ -164,7 +161,6 @@ _show_help() {
     printf "%b\n" "  - 源码编译 Python 可能需要较长时间，并依赖 build-essential 等包。"
     printf "%b\n" "  - 从官网安装 Go 依赖 curl/wget, grep, sed, awk, tar，且解析逻辑可能因官网改版失效。"
     printf "%b\n" "  - 更换 APT 源会修改系统配置，请谨慎操作，并确保信任 ${CY}linuxmirrors.cn${R} 脚本。"
-    # 在注意事项中动态获取 CURRENT_USER
     printf "%b\n" "  - Rust 和 nvm 会安装到执行 sudo 命令的用户 (${YL}${SUDO_USER:-$(whoami)}${R}) 的家目录下。"
     printf "%b\n" "  - 安装 Docker 后，需要重新登录或运行 'newgrp docker' 才能免 sudo 使用 docker 命令。"
     printf "%b\n" "  - 手动安装 Go 后，需要重新登录或运行 'source /etc/profile.d/go.sh' 才能使用 go 命令。"
@@ -226,7 +222,6 @@ _run_apt_update() {
 }
 
 # --- 安装 apt 包 (带错误处理) ---
-# 用法: _install_apt_packages "包名1" "包名2" ...
 _install_apt_packages() {
     if [[ $# -eq 0 ]]; then
         _log_warning "_install_apt_packages: 没有指定要安装的包。"
@@ -265,7 +260,6 @@ _get_go_arch() {
 _install_basic_packages() {
     _log_info "[0] 开始安装基础软件包..."
     _run_apt_update
-    # 添加 Go 手动安装需要的依赖: curl/wget, grep, sed, awk, tar
     if ! _install_apt_packages curl wget vim htop git unzip net-tools ca-certificates gnupg lsb-release software-properties-common apt-transport-https grep sed awk tar; then
         _log_error "基础软件包安装失败。"
         return 1
@@ -330,9 +324,11 @@ _install_python() {
         echo -e "${COLOR_MAGENTA}----------------------------------${COLOR_RESET}"
         echo -e " ${COLOR_BOLD}Python 3 安装选项${COLOR_RESET}"
         echo -e "${COLOR_MAGENTA}----------------------------------${COLOR_RESET}"
-        echo "  1) 使用 apt 安装系统默认版本 (${COLOR_GREEN}推荐，最稳定${COLOR_RESET})"
-        echo "  2) 从源码编译安装指定版本 (${COLOR_YELLOW}高级，耗时，需要依赖${COLOR_RESET})"
-        echo "  3) 跳过安装 (${COLOR_DIM}推荐使用 pyenv 等版本管理器${COLOR_RESET})"
+        # --- 使用 echo -e ---
+        echo -e "  1) 使用 apt 安装系统默认版本 (${COLOR_GREEN}推荐，最稳定${COLOR_RESET})"
+        echo -e "  2) 从源码编译安装指定版本 (${COLOR_YELLOW}高级，耗时，需要依赖${COLOR_RESET})"
+        echo -e "  3) 跳过安装 (${COLOR_DIM}推荐使用 pyenv 等版本管理器${COLOR_RESET})"
+        # --- /使用 echo -e ---
         echo -e "${COLOR_MAGENTA}----------------------------------${COLOR_RESET}"
         local python_choice
         _read_prompt "请输入选项" python_choice "1"
@@ -422,7 +418,9 @@ _compile_python_from_source() {
         for i in "${!python_versions[@]}"; do
             if [[ $options_count -lt $display_count ]]; then
                 local index=$((options_count + 1))
-                printf "  %2d) %s\n" "$index" "${COLOR_YELLOW}${python_versions[$i]}${COLOR_RESET}"
+                # --- 使用 printf 格式化并确保颜色生效 ---
+                printf "  %2d) %b\n" "$index" "${COLOR_YELLOW}${python_versions[$i]}${COLOR_RESET}"
+                # --- /使用 printf ---
                 version_map[$index]="${python_versions[$i]}"
                 options_count=$((options_count + 1))
             else
@@ -430,7 +428,9 @@ _compile_python_from_source() {
             fi
         done
         echo -e "${COLOR_MAGENTA}----------------------------------${COLOR_RESET}"
-        echo "   0) 取消编译安装"
+        # --- 使用 echo -e ---
+        echo -e "   0) ${COLOR_YELLOW}取消编译安装${COLOR_RESET}"
+        # --- /使用 echo -e ---
         echo -e "${COLOR_MAGENTA}----------------------------------${COLOR_RESET}"
 
         while true; do
@@ -545,9 +545,11 @@ _install_go() {
         echo -e "${COLOR_MAGENTA}----------------------------------${COLOR_RESET}"
         echo -e " ${COLOR_BOLD}Go (Golang) 安装选项${COLOR_RESET}"
         echo -e "${COLOR_MAGENTA}----------------------------------${COLOR_RESET}"
-        echo "  1) 使用 apt 安装系统默认版本 (${COLOR_DIM}可能不是最新版${COLOR_RESET})"
-        echo "  2) 从官网下载并安装最新稳定版本 (${COLOR_GREEN}推荐${COLOR_RESET})"
-        echo "  3) 跳过安装 (${COLOR_DIM}或使用 gvm/asdf 等管理器${COLOR_RESET})"
+        # --- 使用 echo -e ---
+        echo -e "  1) 使用 apt 安装系统默认版本 (${COLOR_DIM}可能不是最新版${COLOR_RESET})"
+        echo -e "  2) 从官网下载并安装最新稳定版本 (${COLOR_GREEN}推荐${COLOR_RESET})"
+        echo -e "  3) 跳过安装 (${COLOR_DIM}或使用 gvm/asdf 等管理器${COLOR_RESET})"
+        # --- /使用 echo -e ---
         echo -e "${COLOR_MAGENTA}----------------------------------${COLOR_RESET}"
         local go_choice
         _read_prompt "请输入选项" go_choice "2"
@@ -831,8 +833,8 @@ _install_nodejs() {
         echo -e "${COLOR_MAGENTA}----------------------------------${COLOR_RESET}"
         echo -e " ${COLOR_BOLD}请选择要安装的 Node.js 版本 (通过 NodeSource)${COLOR_RESET}"
         echo -e "${COLOR_MAGENTA}----------------------------------${COLOR_RESET}"
-        echo "  [1] LTS (${COLOR_GREEN}推荐${COLOR_RESET}, ${DEFAULT_NODE_LTS_MAJOR_VERSION}.x)"
-        echo "  [2] 最新版 (Current, ${DEFAULT_NODE_LATEST_MAJOR_VERSION}.x)"
+        echo -e "  [1] LTS (${COLOR_GREEN}推荐${COLOR_RESET}, ${DEFAULT_NODE_LTS_MAJOR_VERSION}.x)"
+        echo -e "  [2] 最新版 (Current, ${DEFAULT_NODE_LATEST_MAJOR_VERSION}.x)"
         echo -e "${COLOR_MAGENTA}----------------------------------${COLOR_RESET}"
         local node_choice
         _read_prompt "请输入选项" node_choice "1"
@@ -1181,9 +1183,9 @@ _change_apt_source() {
         echo -e " ${COLOR_BOLD}请选择要使用的 APT 软件源:${COLOR_RESET}"
         echo -e " ${COLOR_DIM}(当默认源下载速度慢时建议更换)${COLOR_RESET}"
         echo -e "${COLOR_MAGENTA}----------------------------------${COLOR_RESET}"
-        echo "  1) 中国大陆镜像源 (${COLOR_GREEN}推荐中国大陆用户${COLOR_RESET})"
-        echo "  2) 国际官方源"
-        echo "  0) ${COLOR_YELLOW}取消更换${COLOR_RESET}"
+        echo -e "  1) 中国大陆镜像源 (${COLOR_GREEN}推荐中国大陆用户${COLOR_RESET})"
+        echo -e "  2) 国际官方源"
+        echo -e "  0) ${COLOR_YELLOW}取消更换${COLOR_RESET}"
         echo -e "${COLOR_MAGENTA}----------------------------------${COLOR_RESET}"
         local source_choice
         _read_prompt "请输入选项" source_choice "0"
@@ -1241,7 +1243,6 @@ _parse_arguments() {
     fi
 
     g_non_interactive=true
-    # 在非交互模式下，先不打印禁用颜色的信息，等颜色变量清空后再打印
 
     declare -gA g_cli_choices=()
     g_php_no_ppa=false
@@ -1297,8 +1298,14 @@ _parse_arguments() {
 # 初始化检查 (Initial Checks)
 # ==============================================================================
 _initial_checks() {
-    if [[ "$(id -u)" -ne 0 ]]; then _log_error "此脚本必须使用 root 权限 (sudo) 运行。"; fi
-    if ! command -v apt &> /dev/null; then _log_error "未检测到 'apt' 命令。此脚本仅支持基于 apt 的系统 (如 Debian, Ubuntu)。"; fi
+    if [[ "$(id -u)" -ne 0 ]]; then
+        echo "[错误] 此脚本必须使用 root 权限 (sudo) 运行。" >&2
+        exit 1
+    fi
+    if ! command -v apt &> /dev/null; then
+        echo "[错误] 未检测到 'apt' 命令。此脚本仅支持基于 apt 的系统 (如 Debian, Ubuntu)。" >&2
+        exit 1
+    fi
 
     if [[ -f /etc/os-release ]]; then
         local os_info
@@ -1310,33 +1317,33 @@ _initial_checks() {
     else
         OS_ID="unknown"; OS_VERSION_ID="unknown"; OS_PRETTY_NAME="Debian/Ubuntu (os-release not found)"
     fi
-    # 初始检查时先不带颜色打印，等确定模式后再决定
     echo "[信息] 检测到系统: ${OS_PRETTY_NAME} (ID: ${OS_ID}, Version: ${OS_VERSION_ID})"
 
-    if [[ -z "$CURRENT_USER" || -z "$CURRENT_HOME" ]]; then _log_error "无法确定目标用户 (${CURRENT_USER}) 或其家目录 (${CURRENT_HOME})。"; fi
+    if [[ -z "$CURRENT_USER" || -z "$CURRENT_HOME" ]]; then
+         echo "[错误] 无法确定目标用户 (${CURRENT_USER}) 或其家目录 (${CURRENT_HOME})。" >&2
+         exit 1
+    fi
      echo "[信息] 将为用户 '${CURRENT_USER}' (主目录: ${CURRENT_HOME}) 安装用户级工具 (nvm, rust) 并添加到 docker 组。"
 
-     if ! command -v dpkg &> /dev/null; then _log_error "未检测到 'dpkg' 命令，无法确定系统架构。"; fi
+     if ! command -v dpkg &> /dev/null; then
+        echo "[错误] 未检测到 'dpkg' 命令，无法确定系统架构。" >&2
+        exit 1
+     fi
 }
 
 # ==============================================================================
 # 主逻辑 (Main Logic)
 # ==============================================================================
 main() {
-    # 先执行初始化检查（不带颜色）
     _initial_checks
-    # 解析参数，确定是否为非交互模式
     _parse_arguments "$@"
 
     # --- 如果是非交互模式，则禁用颜色输出 ---
     if [[ "$g_non_interactive" == true ]]; then
-        # 清空颜色变量
         COLOR_RESET=''; COLOR_RED=''; COLOR_GREEN=''; COLOR_YELLOW='';
         COLOR_BLUE=''; COLOR_MAGENTA=''; COLOR_CYAN=''; COLOR_BOLD=''; COLOR_DIM='';
-        # 现在可以打印带颜色的信息了（虽然颜色变量为空）
         _log_info "非交互模式，禁用颜色输出。"
     else
-        # 交互模式下，用颜色重新打印初始信息
         _log_info "检测到系统: ${COLOR_YELLOW}${OS_PRETTY_NAME}${COLOR_RESET} (ID: ${OS_ID}, Version: ${OS_VERSION_ID})"
         _log_info "将为用户 '${COLOR_YELLOW}${CURRENT_USER}${COLOR_RESET}' (主目录: ${CURRENT_HOME}) 安装用户级工具 (nvm, rust) 并添加到 docker 组。"
     fi
@@ -1372,7 +1379,7 @@ main() {
                      continue
                 fi
 
-                echo # 添加空行分隔
+                echo
                 _log_info "${COLOR_MAGENTA}--- [非交互] 开始处理: ${option_desc} (参数: ${install_arg}) ---${COLOR_RESET}"
 
                 local call_arg=""
@@ -1384,7 +1391,7 @@ main() {
                     _log_warning "${COLOR_YELLOW}--- [非交互] 处理失败或跳过: ${option_desc} (请查看上面的详细错误信息) ---${COLOR_RESET}"
                     failed_installs+=("$option_desc")
                 fi
-                echo # 添加空行分隔
+                echo
             fi
         done
 
@@ -1464,7 +1471,6 @@ main() {
                         _log_success "${COLOR_MAGENTA}--- [交互] 完成处理: ${choice}) $(echo -e "$option_desc") ---${COLOR_RESET}"
                     else
                         _log_warning "${COLOR_YELLOW}--- [交互] 处理失败或跳过: ${choice}) $(echo -e "$option_desc") (请查看上面的详细信息) ---${COLOR_RESET}"
-                        # 记录不带颜色的描述，用于失败总结
                         failed_installs_this_round+=("${choice}) $(echo -e "$option_desc" | sed 's/\x1b\[[0-9;]*m//g')")
                     fi
                     echo
