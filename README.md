@@ -39,7 +39,6 @@
 **1. 获取脚本**
 *   **通过 curl:**
     ```bash
-    # 确保将 URL 替换为实际的 raw 文件链接
     curl -O https://raw.githubusercontent.com/butlanys/code.sh/main/code.sh
     ```
 *   **直接下载:**
@@ -131,3 +130,5 @@ chmod +x code.sh
 ## 📄 许可证
 
 本项目使用 [MIT](LICENSE) 许可证。
+
+爱来自[Gemini 2.5 Pro Preview 03-25](https://aistudio.google.com/prompts/)
