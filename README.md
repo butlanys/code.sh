@@ -37,13 +37,6 @@
 ## 🚀 使用方法
 
 **1. 获取脚本**
-
-*   **通过 Git (推荐):**
-    ```bash
-    git clone https://github.com/butlanys/code.sh.git
-    cd code.sh
-    # 脚本文件名为 code.sh
-    ```
 *   **通过 curl:**
     ```bash
     # 确保将 URL 替换为实际的 raw 文件链接
