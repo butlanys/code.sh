@@ -260,7 +260,7 @@ _get_go_arch() {
 _install_basic_packages() {
     _log_info "[0] 开始安装基础软件包..."
     _run_apt_update
-    if ! _install_apt_packages curl wget vim htop git unzip net-tools ca-certificates gnupg lsb-release software-properties-common apt-transport-https grep sed awk tar; then
+    if ! _install_apt_packages curl wget vim htop git unzip net-tools ca-certificates gnupg lsb-release software-properties-common apt-transport-https grep sed gawk tar; then
         _log_error "基础软件包安装失败。"
         return 1
     fi
