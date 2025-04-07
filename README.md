@@ -47,32 +47,17 @@ cd code.sh
 使用 curl:
 
 curl -LO https://raw.githubusercontent.com/butlanys/code.sh/main/code.sh
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-Bash
-IGNORE_WHEN_COPYING_END
 ```
 或者使用 wget:
 ```bash
 wget https://raw.githubusercontent.com/butlanys/code.sh/main/code.sh
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-Bash
-IGNORE_WHEN_COPYING_END
-2. 添加执行权限
-chmod +x code.sh
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-Bash
-IGNORE_WHEN_COPYING_END
-3. 运行脚本
 ```
+2. 添加执行权限
+```bash
+chmod +x code.sh
+```
+3. 运行脚本
+
 重要: 必须使用 sudo 或以 root 用户身份运行。
 
 方式一：交互式菜单模式
@@ -142,12 +127,6 @@ sudo ./code.sh --python 3.12.4 --rust
 
 # 安装所有工具，但在 Ubuntu 上不使用 PHP PPA
 sudo ./code.sh --all --no-ppa
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-Bash
-IGNORE_WHEN_COPYING_END
 ```
 支持的工具和环境列表
 
